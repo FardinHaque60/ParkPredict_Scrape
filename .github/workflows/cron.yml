@@ -2,9 +2,9 @@ name: Scraping Job
 
 on:
   schedule:
-    # Every 15 minutes between 6am-8pm UTC Mon-Thu
-    - cron: "0-59/15 6-21 * * 1-4"
-  workflow_dispatch: # optional manual trigger
+    - cron: "0-59/15 13-23 * * 1-4" # Mon-Thu, every 15 mins between 13:00–23:59 UTC (6am–4:59pm PDT)
+    - cron: "0-59/15 0-4 * * 2-5" # Tue-Fri, every 15 mins between 00:00–04:59 UTC (5pm–9pm PDT previous day)
+  workflow_dispatch:
 
 jobs:
   run-script:
