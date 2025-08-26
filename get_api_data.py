@@ -14,7 +14,7 @@ def fetch_api(timestamp, mock=True):
     iso_timestamp = dt.isoformat()
     URL += iso_timestamp
     try:
-        response = requests.get(URL, headers=HEADERS, verify=False, timeout=10)
+        response = requests.get(URL, headers=HEADERS, verify=False, timeout=60)
         response.raise_for_status()  # Raise an error for bad status codes
         return response.json()
     except requests.RequestException as e:

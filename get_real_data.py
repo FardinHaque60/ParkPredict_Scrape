@@ -8,7 +8,7 @@ HEADERS = {"User-Agent": "Mozilla/5.0"}  # Mimic a browser request
 
 def fetch_html():
     try:
-        response = requests.get(URL, headers=HEADERS, verify=False, timeout=10) 
+        response = requests.get(URL, headers=HEADERS, verify=False, timeout=60) 
         response.raise_for_status()  # Raise an error for bad status codes
         return response.text
     except requests.RequestException as e:
