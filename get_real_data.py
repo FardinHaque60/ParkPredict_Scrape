@@ -26,50 +26,52 @@ def scrape_park_data(mock=True):
         print("Error getting response text.")
         return
     
-    soup = BeautifulSoup(response_text, 'html.parser')
-    
-    # Extract timestamp
-    timestamp_element = soup.find("p", class_="timestamp")
-    timestamp = None 
-
-    if timestamp_element:
-        timestamp_text = timestamp_element.get_text(strip=True, separator=" ")  # Get only text content
-        timestamp = timestamp_text.replace("Last updated ", "").replace(" Refresh", "")  # Remove "Last updated" and "Refresh" 
-        timestamp = timestamp[:20]
+    try:
+        soup = BeautifulSoup(response_text, 'html.parser')
         
-        timestamp_pattern = r"^\d{4}-\d{1,2}-\d{1,2} \d{1,2}:\d{2}:\d{2} [APM]{2}$"
+        # Extract timestamp
+        timestamp_element = soup.find("p", class_="timestamp")
+        timestamp = None 
 
-        if not re.match(timestamp_pattern, timestamp):  # Ensure expected format
-            print(f"Timestamp format is incorrect: {timestamp_text}")
-            print(f"stripped version: {timestamp}")
-            timestamp = None
+        if timestamp_element:
+            timestamp_text = timestamp_element.get_text(strip=True, separator=" ")  # Get only text content
+            timestamp = timestamp_text.replace("Last updated ", "").replace(" Refresh", "")  # Remove "Last updated" and "Refresh" 
+            timestamp = timestamp[:20]
+            
+            timestamp_pattern = r"^\d{4}-\d{1,2}-\d{1,2} \d{1,2}:\d{2}:\d{2} [APM]{2}$"
 
-    # parse garage fullness data
-    garages = []
-    for garage in soup.find_all("h2", class_="garage__name"):
-        name = garage.text.strip()
+            if not re.match(timestamp_pattern, timestamp):  # Ensure expected format
+                print(f"Timestamp format is incorrect: {timestamp_text}")
+                print(f"stripped version: {timestamp}")
+                timestamp = None
 
-        if name == "South Campus Garage":
-            break
+        # parse garage fullness data
+        garages = []
+        for garage in soup.find_all("h2", class_="garage__name"):
+            name = garage.text.strip()
 
-        fullness_tag = garage.find_next("span", class_="garage__fullness")  # Find fullness relative to name
-        fullness = fullness_tag.text.strip().split(" ")[0]  # Get the text content of the fullness tag
-        if fullness == "Full":
-            fullness = "100"
+            if name == "South Campus Garage":
+                break
 
-        try:
-            write_to_supabase("real_data", timestamp, name, fullness, mock)
-            print("Successfully wrote data to supabase.")
-        except Exception as e:
-            print(f"Error writing to Supabase: {e}")
-        garages.append([timestamp, name, fullness])
-    
-    print(f"REAL DATA")
-    print(f"fetched data for timestamp: {timestamp}.")
-    for garage in garages:
-        print(f"Garage: {garage[1]}, Fullness: {garage[2]}%")
-    print("---------------------------------------")
-    return timestamp
+            fullness_tag = garage.find_next("span", class_="garage__fullness")  # Find fullness relative to name
+            fullness = fullness_tag.text.strip().split(" ")[0]  # Get the text content of the fullness tag
+            if fullness == "Full":
+                fullness = "100"
+
+            try:
+                write_to_supabase("real_data", timestamp, name, fullness, mock)
+            except Exception as e:
+                print(f"Error writing to Supabase: {e}")
+            garages.append([timestamp, name, fullness])
+        
+        print(f"REAL DATA")
+        print(f"fetched data for timestamp: {timestamp}.")
+        for garage in garages:
+            print(f"Garage: {garage[1]}, Fullness: {garage[2]}%")
+        print("---------------------------------------")
+        return timestamp
+    except Exception as e:
+        print(f"Error occurred while scraping park data: {e}")
 
 if __name__ == "__main__":
     scrape_park_data()

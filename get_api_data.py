@@ -1,5 +1,4 @@
 import requests
-from bs4 import BeautifulSoup
 import re
 from supabase_client import write_to_supabase
 import datetime
@@ -8,13 +7,12 @@ URL = "https://parkpredict-api.fly.dev/api/predict?timestamp="
 HEADERS = {"User-Agent": "Mozilla/5.0"}  # Mimic a browser request
 
 def fetch_api(timestamp, mock=True):
-    global URL
     # Convert timestamp string to ISO format
     dt = datetime.datetime.strptime(timestamp, "%Y-%m-%d %I:%M:%S %p")
     iso_timestamp = dt.isoformat()
-    URL += iso_timestamp
+    url = URL + iso_timestamp
     try:
-        response = requests.get(URL, headers=HEADERS, verify=False, timeout=60)
+        response = requests.get(url, headers=HEADERS, verify=False, timeout=60)
         response.raise_for_status()  # Raise an error for bad status codes
         return response.json()
     except requests.RequestException as e:
@@ -36,7 +34,6 @@ def scrape_api_data(input_timestamp, mock=True):
 
         try:
             write_to_supabase("random_forest_predictions", input_timestamp, garage, response_data[garage], mock)
-            print("Successfully wrote data to supabase.")
         except Exception as e:
             print(f"Error writing to Supabase: {e}")
 
