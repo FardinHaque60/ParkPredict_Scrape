@@ -13,7 +13,6 @@ SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SECRET_KEY")
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
 def write_to_supabase(table, timestamp, garage, fullness, mock):
-
     data = {
         "timestamp": timestamp,
         "garage": garage,
@@ -22,4 +21,10 @@ def write_to_supabase(table, timestamp, garage, fullness, mock):
     if (mock):
         print(f"Mock insert into {table}: {data}")
         return
+    print("Successfully wrote data to supabase.")
     supabase.table(table).insert(data).execute()
+
+def read_timestamps_from_supabase(table):
+    response = supabase.table(table).select("timestamp").execute()
+    response_set = {dt["timestamp"] for dt in response.data}
+    return response_set
