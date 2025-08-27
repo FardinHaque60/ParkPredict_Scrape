@@ -21,10 +21,16 @@ def write_to_supabase(table, timestamp, garage, fullness, mock):
     if (mock):
         print(f"Mock insert into {table}: {data}")
         return
-    print("Successfully wrote data to supabase.")
     supabase.table(table).insert(data).execute()
+    print("Successfully wrote data to supabase.")
 
 def read_timestamps_from_supabase(table):
     response = supabase.table(table).select("timestamp").execute()
     response_set = {dt["timestamp"] for dt in response.data}
     return response_set
+
+''' writes whatever data is based into method 
+def write_temp(table, item):
+    supabase.table(table).insert(item).execute()
+    print("Successfully wrote data to supabase.")
+'''
