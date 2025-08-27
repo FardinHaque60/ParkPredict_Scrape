@@ -18,10 +18,6 @@ def fetch_html():
 def scrape_park_data(mock=True):
     response_text = fetch_html()
 
-    with open("park_status_pretty.html", "w", encoding="utf-8") as f:
-        soup_pretty = BeautifulSoup(response_text, 'html.parser').prettify()
-        f.write(soup_pretty)
-
     if (not response_text):
         print("Error getting response text.")
         return
@@ -36,14 +32,15 @@ def scrape_park_data(mock=True):
         if timestamp_element:
             timestamp_text = timestamp_element.get_text(strip=True, separator=" ")  # Get only text content
             timestamp = timestamp_text.replace("Last updated ", "").replace(" Refresh", "")  # Remove "Last updated" and "Refresh" 
-            timestamp = timestamp[:20]
             
-            timestamp_pattern = r"^\d{4}-\d{1,2}-\d{1,2} \d{1,2}:\d{2}:\d{2} [APM]{2}$"
+            timestamp_pattern = r'^\d{4}-\d{1,2}-\d{1,2} \d{1,2}:\d{2}:\d{2} [AP]M'
 
-            if not re.match(timestamp_pattern, timestamp):  # Ensure expected format
+            match = re.match(timestamp_pattern, timestamp)
+            if not match:  # Ensure expected format
                 print(f"Timestamp format is incorrect: {timestamp_text}")
                 print(f"stripped version: {timestamp}")
                 timestamp = None
+            timestamp = match.group(0)
 
         # parse garage fullness data
         garages = []
