@@ -10,7 +10,7 @@ def fetch_api(timestamp, mock=True):
     # Convert timestamp string to ISO format
     dt = datetime.datetime.strptime(timestamp, "%Y-%m-%d %I:%M:%S %p")
     iso_timestamp = dt.isoformat()
-    url = URL + iso_timestamp
+    url = URL + iso_timestamp + "&mock=True"
     try:
         response = requests.get(url, headers=HEADERS, verify=False, timeout=60)
         response.raise_for_status()  # Raise an error for bad status codes
