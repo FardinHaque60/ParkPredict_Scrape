@@ -43,13 +43,13 @@ def write_temp(table, item):
     supabase.table(table).insert(item).execute()
     print("Successfully wrote data to supabase.")
 
-def clean_30_days_old():
+def clean_6_months_old():
     print("CLEANUP")
     tables = ["real_data", "random_forest_predictions"]
-    thirty_days_ago = datetime.now() - timedelta(days=30)
-    iso_thirty_days_ago = thirty_days_ago.isoformat()
+    six_months_ago = datetime.now() - timedelta(days=6*30)
+    iso_six_months_ago = six_months_ago.isoformat()
 
     for table in tables:
-        response = supabase.table(table).delete().lt("created_at", iso_thirty_days_ago).execute()
+        response = supabase.table(table).delete().lt("created_at", iso_six_months_ago).execute()
         num_deleted = len(response.data)
         print(f"Number of entries deleted from {table}: {num_deleted}")
