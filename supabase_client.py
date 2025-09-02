@@ -1,6 +1,7 @@
 import os
 from supabase import create_client, Client
 from dotenv import load_dotenv
+from datetime import datetime, timedelta
 
 # Load .env file
 load_dotenv()
@@ -41,3 +42,14 @@ def read_timestamps_from_supabase(table):
 def write_temp(table, item):
     supabase.table(table).insert(item).execute()
     print("Successfully wrote data to supabase.")
+
+def clean_30_days_old():
+    print("CLEANUP")
+    tables = ["real_data", "random_forest_predictions"]
+    thirty_days_ago = datetime.now() - timedelta(days=30)
+    iso_thirty_days_ago = thirty_days_ago.isoformat()
+
+    for table in tables:
+        response = supabase.table(table).delete().lt("created_at", iso_thirty_days_ago).execute()
+        num_deleted = len(response.data)
+        print(f"Number of entries deleted from {table}: {num_deleted}")
