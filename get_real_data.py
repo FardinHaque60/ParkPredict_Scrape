@@ -1,3 +1,4 @@
+from datetime import datetime
 import requests
 from bs4 import BeautifulSoup
 import re
@@ -6,12 +7,20 @@ from supabase_client import write_to_supabase, read_south_campus_by_id, write_so
 URL = "https://sjsuparkingstatus.sjsu.edu/"
 HEADERS = {"User-Agent": "Mozilla/5.0"}  # Mimic a browser request
 
-HEURISTIC_PEOPLE_PER_PERCENTAGE = 4  
+HEURISTIC_PEOPLE_PER_PERCENTAGE = 4
+TIME_WINDOW = 15 # represent window which we want to how much percentage changed in, i.e. we want to find N% change in TIME_WINDOW minutes
 
 def make_south_campus_people_prediction(id, timestamp, fullness):
-    prev_south_campus_fullness = read_south_campus_by_id(id-1)["fullness"]  
-    fullness, prev_south_campus_fullness = int(fullness), int(prev_south_campus_fullness)
-    people_prediction = (fullness - prev_south_campus_fullness) * HEURISTIC_PEOPLE_PER_PERCENTAGE
+    prev_data = read_south_campus_by_id(id-1)
+    prev_south_campus_fullness = prev_data["fullness"]
+    prev_timestamp = prev_data["timestamp"]    
+
+    fullness_diff = int(fullness) - int(prev_south_campus_fullness)
+    time_diff = (datetime.strptime(timestamp, "%Y-%m-%d %I:%M:%S %p") - datetime.strptime(prev_timestamp, "%Y-%m-%d %I:%M:%S %p")).total_seconds() / 60  # in minutes
+    if time_diff == 0:
+        time_diff = 1  # avoid division by zero, though this should not happen
+
+    people_prediction = int((fullness_diff/time_diff) * TIME_WINDOW * HEURISTIC_PEOPLE_PER_PERCENTAGE)
     write_south_campus_people_prediction(timestamp, people_prediction)
 
 def fetch_html():

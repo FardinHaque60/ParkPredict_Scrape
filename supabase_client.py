@@ -17,7 +17,7 @@ def read_south_campus_by_id(id):
     response = supabase.table("actual_south_campus").select("*").eq("id", id).execute()
     if response.data:
         return response.data[0]
-    return None
+    raise ValueError(f"Error reading data from supabase, no entry found with id {id}")
 
 def write_to_supabase(table, timestamp, garage, fullness, mock):
     data = {
