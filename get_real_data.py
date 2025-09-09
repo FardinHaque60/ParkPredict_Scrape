@@ -1,10 +1,18 @@
 import requests
 from bs4 import BeautifulSoup
 import re
-from supabase_client import write_to_supabase
+from supabase_client import write_to_supabase, read_south_campus_by_id, write_south_campus_people_prediction, write_to_actual_south_campus
 
 URL = "https://sjsuparkingstatus.sjsu.edu/"
 HEADERS = {"User-Agent": "Mozilla/5.0"}  # Mimic a browser request
+
+HEURISTIC_PEOPLE_PER_PERCENTAGE = 4  
+
+def make_south_campus_people_prediction(id, timestamp, fullness):
+    prev_south_campus_fullness = read_south_campus_by_id(id-1)["fullness"]  
+    fullness, prev_south_campus_fullness = int(fullness), int(prev_south_campus_fullness)
+    people_prediction = (fullness - prev_south_campus_fullness) * HEURISTIC_PEOPLE_PER_PERCENTAGE
+    write_south_campus_people_prediction(timestamp, people_prediction)
 
 def fetch_html():
     try:
@@ -47,16 +55,19 @@ def scrape_park_data(mock=True):
         for garage in soup.find_all("h2", class_="garage__name"):
             name = garage.text.strip()
 
-            if name == "South Campus Garage":
-                break
-
             fullness_tag = garage.find_next("span", class_="garage__fullness")  # Find fullness relative to name
             fullness = fullness_tag.text.strip().split(" ")[0]  # Get the text content of the fullness tag
             if fullness == "Full":
                 fullness = "100"
 
             try:
-                write_to_supabase("real_data", timestamp, name, fullness, mock)
+                # save to other database if south campus garage entry
+                if name == "South Campus Garage":
+                    entry = write_to_actual_south_campus(timestamp, fullness)
+                    # after writing it to database, make a call to make prediction
+                    make_south_campus_people_prediction(entry["id"], timestamp, fullness)
+                else:
+                    write_to_supabase("real_data", timestamp, name, fullness, mock)
             except Exception as e:
                 print(f"Error writing to Supabase: {e}")
             garages.append([timestamp, name, fullness])
