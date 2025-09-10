@@ -5,6 +5,9 @@ import datetime
 
 def scrape():
     timestamp = scrape_park_data(mock=False) # get the timestamp for which real data was scraped for
+    if not timestamp:
+        print("Unable to get scraped data, skipping this run.")
+        return
     scrape_api_data(timestamp, mock=False)
     dt = datetime.datetime.strptime(timestamp, "%Y-%m-%d %I:%M:%S %p")
     if dt.weekday() == 3 and 6 <= dt.hour < 7:  # clean up is done on Thursdays between 6AM and 7AM
